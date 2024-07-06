@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KSP - Minesweeper</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+      }
+
+      .container-minesweeper {
+        display: grid;
+        grid-template-columns: repeat(
+          6,
+          50px
+        ); /* Adjust columns based on desired grid size */
+        gap: 2px; /* Gap between cells */
+      }
+
+      .cell {
+        width: 50px; /* Adjust size based on desired grid size */
+        height: 50px; /* Adjust size based on desired grid size */
+        background-color: #bbb;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        user-select: none; /* Prevent text selection */
+        font-size: 0.8em; /* Font size for number indicators */
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container-minesweeper" id="minesweeper-grid"></div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const gridSize = 6; // Size of the grid (gridSize x gridSize)
+        const numMines = 5; // Number of mines
+
+        let minesweeperGrid = []; // 2D array to hold cell data
+        let revealedCells = new Set(); // Set to track revealed cells
+        let gameOver = false; // Game over flag
+
+        // Function to create and initialize the Minesweeper grid
+        function createMinesweeperGrid() {
+          const container = document.getElementById("minesweeper-grid");
+          for (let i = 0; i < gridSize; i++) {
+            minesweeperGrid[i] = []; // Initialize row in the 2D array
+            for (let j = 0; j < gridSize; j++) {
+              const cell = document.createElement("div");
+              cell.classList.add("cell");
+              cell.dataset.row = i;
+              cell.dataset.col = j;
+              container.appendChild(cell);
+              minesweeperGrid[i][j] = {
+                element: cell,
+                isMine: false,
+                neighborMines: 0,
+                revealed: false,
+              };
+            }
+          }
+          placeMines();
+          calculateNeighborMines();
+        }
+
+        // Function to place mines randomly
+        function placeMines() {
+          const mines = generateMines();
+          mines.forEach((pos) => {
+            const [row, col] = pos.split(",");
+            minesweeperGrid[row][col].isMine = true;
+          });
+        }
+
+        // Function to generate random mine locations
+        function generateMines() {
+          const mines = new Set();
+          while (mines.size < numMines) {
+            const row = Math.floor(Math.random() * gridSize);
+            const col = Math.floor(Math.random() * gridSize);
+            mines.add(`${row},${col}`);
+          }
+          return mines;
+        }
+
+        // Function to calculate and set number of neighboring mines for each cell
+        function calculateNeighborMines() {
+          for (let i = 0; i < gridSize; i++) {
+            for (let j = 0; j < gridSize; j++) {
+              if (!minesweeperGrid[i][j].isMine) {
+                let count = 0;
+                // Check 3x3 area around the cell
+                for (let di = -1; di <= 1; di++) {
+                  for (let dj = -1; dj <= 1; dj++) {
+                    const ni = i + di;
+                    const nj = j + dj;
+                    if (ni >= 0 && ni < gridSize && nj >= 0 && nj < gridSize) {
+                      if (minesweeperGrid[ni][nj].isMine) {
+                        count++;
+                      }
+                    }
+                  }
+                }
+                minesweeperGrid[i][j].neighborMines = count;
+              }
+            }
+          }
+        }
+
+        // Function to reveal neighboring cells recursively
+        function revealEmptyCells(row, col) {
+          if (row < 0 || row >= gridSize || col < 0 || col >= gridSize) return;
+          const cell = minesweeperGrid[row][col];
+          if (cell.revealed) return;
+          cell.revealed = true;
+          revealedCells.add(`${row},${col}`);
+          if (cell.neighborMines === 0) {
+            // Reveal neighboring cells
+            for (let di = -1; di <= 1; di++) {
+              for (let dj = -1; dj <= 1; dj++) {
+                revealEmptyCells(row + di, col + dj);
+              }
+            }
+          }
+          updateCellDisplay(cell);
+        }
+
+        // Function to handle click events on cells
+        function cellClick(event) {
+          if (gameOver) return;
+          const cell = event.target;
+          if (!cell.classList.contains("cell")) return;
+          const row = parseInt(cell.dataset.row);
+          const col = parseInt(cell.dataset.col);
+          const currentCell = minesweeperGrid[row][col];
+          if (currentCell.isMine) {
+            // Game over
+            revealAllMines();
+            gameOver = true;
+            alert("Game Over!");
+          } else {
+            // Reveal the clicked cell
+            revealEmptyCells(row, col);
+          }
+        }
+
+        // Function to reveal all mines when game over
+        function revealAllMines() {
+          for (let i = 0; i < gridSize; i++) {
+            for (let j = 0; j < gridSize; j++) {
+              if (minesweeperGrid[i][j].isMine) {
+                minesweeperGrid[i][j].revealed = true;
+                updateCellDisplay(minesweeperGrid[i][j]);
+              }
+            }
+          }
+        }
+
+        // Function to update the display of a cell
+        function updateCellDisplay(cellData) {
+          const cell = cellData.element;
+          if (cellData.revealed) {
+            cell.style.backgroundColor = "#ddd";
+            if (!cellData.isMine && cellData.neighborMines > 0) {
+              cell.textContent = cellData.neighborMines;
+            }
+          }
+        }
+
+        // Initialize the Minesweeper grid
+        createMinesweeperGrid();
+
+        // Event listener for cell clicks
+        document
+          .getElementById("minesweeper-grid")
+          .addEventListener("click", cellClick);
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KSP - 2048</title>
+    <style>
+      .container-2048 {
+        width: 400px;
+        margin: 0 auto;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        background-color: #bbada0;
+        padding: 10px;
+        border-radius: 5px;
+      }
+      .cell {
+        width: 80px;
+        height: 80px;
+        background-color: #cdc1b4;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 24px;
+        font-weight: bold;
+        border-radius: 5px;
+      }
+      .controls {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+      }
+      button {
+        margin: 0 10px;
+        padding: 10px 20px;
+        font-size: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container-2048">
+      <div class="grid">
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+      </div>
+      <div class="controls">
+        <button onclick="move('up')">Up</button>
+        <button onclick="move('down')">Down</button>
+        <button onclick="move('left')">Left</button>
+        <button onclick="move('right')">Right</button>
+      </div>
+    </div>
+    <script>
+      let board = Array(4)
+        .fill()
+        .map(() => Array(4).fill(0));
+      let maxTile = 2;
+
+      function initGame() {
+        board = Array(4)
+          .fill()
+          .map(() => Array(4).fill(0));
+        addNewTile();
+        addNewTile();
+        updateBoard();
+      }
+
+      function addNewTile() {
+        let emptyCells = [];
+        for (let i = 0; i < 4; i++) {
+          for (let j = 0; j < 4; j++) {
+            if (board[i][j] === 0) {
+              emptyCells.push({ i, j });
+            }
+          }
+        }
+        if (emptyCells.length > 0) {
+          let { i, j } =
+            emptyCells[Math.floor(Math.random() * emptyCells.length)];
+          let newValue = Math.random() < 0.9 ? 2 : 4;
+          if (newValue > 2 && newValue > maxTile / 8) {
+            newValue = 2;
+          }
+          board[i][j] = newValue;
+          maxTile = Math.max(maxTile, newValue);
+        }
+      }
+
+      function updateBoard() {
+        let cells = document.querySelectorAll(".cell");
+        for (let i = 0; i < 4; i++) {
+          for (let j = 0; j < 4; j++) {
+            let cell = cells[i * 4 + j];
+            cell.textContent = board[i][j] || "";
+            cell.style.backgroundColor = getTileColor(board[i][j]);
+          }
+        }
+      }
+
+      function getTileColor(value) {
+        const colors = {
+          2: "#eee4da",
+          4: "#ede0c8",
+          8: "#f2b179",
+          16: "#f59563",
+          32: "#f67c5f",
+          64: "#f65e3b",
+          128: "#edcf72",
+          256: "#edcc61",
+          512: "#edc850",
+          1024: "#edc53f",
+          2048: "#edc22e",
+        };
+        return colors[value] || "#cdc1b4";
+      }
+
+      function move(direction) {
+        let moved = false;
+        switch (direction) {
+          case "up":
+            moved = moveUp();
+            break;
+          case "down":
+            moved = moveDown();
+            break;
+          case "left":
+            moved = moveLeft();
+            break;
+          case "right":
+            moved = moveRight();
+            break;
+        }
+        if (moved) {
+          addNewTile();
+          updateBoard();
+        }
+      }
+
+      function moveUp() {
+        let moved = false;
+        for (let j = 0; j < 4; j++) {
+          let column = [board[0][j], board[1][j], board[2][j], board[3][j]];
+          let newColumn = moveAndMerge(column);
+          for (let i = 0; i < 4; i++) {
+            if (board[i][j] !== newColumn[i]) {
+              moved = true;
+              board[i][j] = newColumn[i];
+            }
+          }
+        }
+        return moved;
+      }
+
+      function moveDown() {
+        let moved = false;
+        for (let j = 0; j < 4; j++) {
+          let column = [board[3][j], board[2][j], board[1][j], board[0][j]];
+          let newColumn = moveAndMerge(column);
+          for (let i = 0; i < 4; i++) {
+            if (board[3 - i][j] !== newColumn[i]) {
+              moved = true;
+              board[3 - i][j] = newColumn[i];
+            }
+          }
+        }
+        return moved;
+      }
+
+      function moveLeft() {
+        let moved = false;
+        for (let i = 0; i < 4; i++) {
+          let row = board[i];
+          let newRow = moveAndMerge(row);
+          if (row.join(",") !== newRow.join(",")) {
+            moved = true;
+            board[i] = newRow;
+          }
+        }
+        return moved;
+      }
+
+      function moveRight() {
+        let moved = false;
+        for (let i = 0; i < 4; i++) {
+          let row = board[i].slice().reverse();
+          let newRow = moveAndMerge(row);
+          newRow.reverse();
+          if (board[i].join(",") !== newRow.join(",")) {
+            moved = true;
+            board[i] = newRow;
+          }
+        }
+        return moved;
+      }
+
+      function moveAndMerge(line) {
+        let newLine = line.filter((tile) => tile !== 0);
+        for (let i = 0; i < newLine.length - 1; i++) {
+          if (newLine[i] === newLine[i + 1]) {
+            newLine[i] *= 2;
+            maxTile = Math.max(maxTile, newLine[i]);
+            newLine.splice(i + 1, 1);
+          }
+        }
+        while (newLine.length < 4) {
+          newLine.push(0);
+        }
+        return newLine;
+      }
+
+      initGame();
+    </script>
+  </body>
+</html>

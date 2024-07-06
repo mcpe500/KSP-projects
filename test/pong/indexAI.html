@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KSP - Pong</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden; /* Hide scrollbars */
+      background-color: black; /* Black background */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container-pong {
+      position: relative;
+      width: 80vw;
+      height: 80vh;
+      background-color: #111; /* Darker background for the game board */
+      border: 2px solid white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      position: relative;
+    }
+    .middle-line {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 2px;
+      height: 100%;
+      background-color: white;
+    }
+    .player {
+      position: absolute;
+      width: 10px;
+      height: 80px;
+      background-color: white;
+    }
+    .player-left {
+      left: 10px; /* Distance from left edge */
+    }
+    .player-right {
+      right: 10px; /* Distance from right edge */
+    }
+    .ball {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background-color: white;
+      border-radius: 50%; /* Round ball */
+    }
+    .score {
+      position: absolute;
+      color: white;
+      font-size: 48px;
+      font-family: Arial, sans-serif;
+    }
+    .score-left {
+      left: calc(50% - 60px);
+    }
+    .score-right {
+      right: calc(50% - 60px);
+    }
+  </style>
+</head>
+<body>
+  <div class="container-pong">
+    <div class="middle-line"></div>
+    <div class="player player-left"></div>
+    <div class="player player-right"></div>
+    <div class="ball"></div>
+    <div class="score score-left">0</div>
+    <div class="score score-right">0</div>
+  </div>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const container = document.querySelector(".container-pong");
+      const ball = document.querySelector(".ball");
+      const players = document.querySelectorAll(".player");
+      const scores = [0, 0]; // Scores for player 1 (left) and player 2 (right)
+      const scoreElements = document.querySelectorAll(".score");
+
+      const playerSpeed = 5; // Speed of player movement
+
+      // Initial ball position and speed
+      let ballX = container.clientWidth / 2;
+      let ballY = container.clientHeight / 2;
+      let ballSpeedX = 3; // Adjust as needed
+      let ballSpeedY = 3; // Adjust as needed
+
+      // Player positions
+      let playerLeftY = container.clientHeight / 2 - 40; // Initial position (centered)
+      let playerRightY = container.clientHeight / 2 - 40; // Initial position (centered)
+
+      // Update ball position function
+      function updateBall() {
+        // Update ball position
+        ballX += ballSpeedX;
+        ballY += ballSpeedY;
+
+        // Check collision with top and bottom walls
+        if (
+          ballY <= 0 ||
+          ballY >= container.clientHeight - ball.clientHeight
+        ) {
+          ballSpeedY = -ballSpeedY; // Reverse vertical direction
+        }
+
+        // Check collision with players
+        players.forEach((player, index) => {
+          if (collision(player)) {
+            ballSpeedX = -ballSpeedX; // Reverse horizontal direction
+            // Increase ball speed slightly on each collision (optional)
+            ballSpeedX *= 1.05;
+            ballSpeedY *= 1.05;
+          }
+        });
+
+        // Check if ball goes out of bounds
+        if (ballX <= 0) {
+          // Player 2 (right) scores
+          scores[1]++;
+          updateScore();
+          resetBall();
+        } else if (ballX >= container.clientWidth - ball.clientWidth) {
+          // Player 1 (left) scores
+          scores[0]++;
+          updateScore();
+          resetBall();
+        }
+
+        // Apply position changes to ball element
+        ball.style.left = ballX + "px";
+        ball.style.top = ballY + "px";
+
+        // Request animation frame for smooth animation
+        requestAnimationFrame(updateBall);
+      }
+
+      // Update score display
+      function updateScore() {
+        scoreElements[0].textContent = scores[0];
+        scoreElements[1].textContent = scores[1];
+      }
+
+      // Reset ball position to center and randomize initial direction
+      function resetBall() {
+        ballX = container.clientWidth / 2;
+        ballY = container.clientHeight / 2;
+        ballSpeedX = Math.random() > 0.5 ? 3 : -3; // Random initial direction
+        ballSpeedY = Math.random() > 0.5 ? 3 : -3; // Random initial direction
+      }
+
+      // Collision detection function
+      function collision(player) {
+        let playerRect = player.getBoundingClientRect();
+        let ballRect = ball.getBoundingClientRect();
+        return !(
+          playerRect.right < ballRect.left ||
+          playerRect.left > ballRect.right ||
+          playerRect.bottom < ballRect.top ||
+          playerRect.top > ballRect.bottom
+        );
+      }
+
+      // Variables to keep track of player movement
+      let isPlayer1Up = false;
+      let isPlayer1Down = false;
+      let isPlayer2Up = false;
+      let isPlayer2Down = false;
+
+      // Event listeners for continuous player movement
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "w") {
+          isPlayer1Up = true;
+        } else if (event.key === "s") {
+          isPlayer1Down = true;
+        } else if (event.key === "ArrowUp") {
+          isPlayer2Up = true;
+        } else if (event.key === "ArrowDown") {
+          isPlayer2Down = true;
+        }
+      });
+
+      document.addEventListener("keyup", function (event) {
+        if (event.key === "w") {
+          isPlayer1Up = false;
+        } else if (event.key === "s") {
+          isPlayer1Down = false;
+        } else if (event.key === "ArrowUp") {
+          isPlayer2Up = false;
+        } else if (event.key === "ArrowDown") {
+          isPlayer2Down = false;
+        }
+      });
+
+      // Function to update player positions
+      function updatePlayers() {
+        if (isPlayer1Up) {
+          playerLeftY = Math.max(0, playerLeftY - playerSpeed);
+        }
+        if (isPlayer1Down) {
+          playerLeftY = Math.min(
+            container.clientHeight - players[0].clientHeight,
+            playerLeftY + playerSpeed
+          );
+        }
+        if (isPlayer2Up) {
+          playerRightY = Math.max(0, playerRightY - playerSpeed);
+        }
+        if (isPlayer2Down) {
+          playerRightY = Math.min(
+            container.clientHeight - players[1].clientHeight,
+            playerRightY + playerSpeed
+          );
+        }
+
+        // Apply new positions to players
+        players[0].style.top = playerLeftY + "px";
+        players[1].style.top = playerRightY + "px";
+
+        // Request animation frame to update player positions
+        requestAnimationFrame(updatePlayers);
+      }
+
+      // Start the game loop for updating players
+      updatePlayers();
+
+      // Start the game loop for updating ball
+      updateBall();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KSP - Bomberman</title>
+    <style>
+      .container-bomberman {
+        display: grid;
+        grid-template-columns: repeat(
+          15,
+          20px
+        ); /* Adjust grid size as needed */
+        grid-template-rows: repeat(15, 20px); /* Adjust grid size as needed */
+        gap: 1px; /* Gap between grid cells */
+        background-color: #ddd; /* Background color of grid */
+      }
+      .cell {
+        width: 100%;
+        height: 100%;
+        background-color: #fff; /* Default cell color */
+        border: 1px solid #ccc; /* Border color of cells */
+        position: relative;
+      }
+      .wall {
+        background-color: #333; /* Color for walls */
+      }
+      .destructible {
+        background-color: #bbb; /* Color for destructible walls */
+      }
+      .player-blue {
+        background-color: blue; /* Blue player color */
+      }
+      .player-red {
+        background-color: red; /* Red player color */
+      }
+      .bomb {
+        background-color: yellow; /* Bomb color */
+        animation: bomb-animation 1s infinite alternate; /* Bomb animation */
+      }
+      .explosion {
+        background-color: orange; /* Explosion color */
+        animation: explosion-animation 0.5s linear; /* Explosion animation */
+      }
+      @keyframes bomb-animation {
+        0% {
+          background-color: yellow;
+        }
+        100% {
+          background-color: orange;
+        }
+      }
+      @keyframes explosion-animation {
+        0% {
+          transform: scale(1);
+          opacity: 1;
+        }
+        100% {
+          transform: scale(2);
+          opacity: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container-bomberman" id="bomberman-grid"></div>
+
+    <script>
+      // Function to generate and render the Bomberman map
+      function generateBombermanMap() {
+        const mapSize = 15;
+        const gridContainer = document.getElementById("bomberman-grid");
+        let map = [];
+        let playerBlue = { x: 1, y: 1 }; // Initial position for player blue
+        let playerRed = { x: mapSize - 2, y: mapSize - 2 }; // Initial position for player red
+
+        // Create the map matrix
+        for (let i = 0; i < mapSize; i++) {
+          map.push([]);
+          for (let j = 0; j < mapSize; j++) {
+            // Default to empty cell
+            map[i][j] = 0;
+
+            // Set edges as indestructible walls
+            if (
+              i === 0 ||
+              j === 0 ||
+              i === mapSize - 1 ||
+              j === mapSize - 1 ||
+              (i % 2 === 0 && j % 2 === 0)
+            ) {
+              map[i][j] = 1; // 1 represents indestructible wall
+            } else if (
+              (i <= 3 && j <= 3) ||
+              (i >= mapSize - 4 && j >= mapSize - 4)
+            ) {
+              map[i][j] = 0; // Place walkable path
+            } else {
+              map[i][j] = 2; // Place destructible walls between indestructibles
+            }
+          }
+        }
+
+        // Function to update player position on the grid
+        function updatePlayers() {
+          const playerBlueCell = document.querySelector(`.cell.player-blue`);
+          if (playerBlueCell) {
+            playerBlueCell.classList.remove("player-blue");
+          }
+          const playerRedCell = document.querySelector(`.cell.player-red`);
+          if (playerRedCell) {
+            playerRedCell.classList.remove("player-red");
+          }
+
+          const newPlayerBlueCell = document.querySelector(
+            `.cell[data-x="${playerBlue.x}"][data-y="${playerBlue.y}"]`
+          );
+          if (newPlayerBlueCell) {
+            newPlayerBlueCell.classList.add("player-blue");
+          }
+
+          const newPlayerRedCell = document.querySelector(
+            `.cell[data-x="${playerRed.x}"][data-y="${playerRed.y}"]`
+          );
+          if (newPlayerRedCell) {
+            newPlayerRedCell.classList.add("player-red");
+          }
+        }
+
+        // Render the map in HTML
+        for (let i = 0; i < mapSize; i++) {
+          for (let j = 0; j < mapSize; j++) {
+            let cellClass = "cell";
+            if (map[i][j] === 1) {
+              cellClass += " wall";
+            } else if (map[i][j] === 2) {
+              cellClass += " destructible";
+            }
+
+            const cell = document.createElement("div");
+            cell.className = cellClass;
+            cell.setAttribute("data-x", j);
+            cell.setAttribute("data-y", i);
+
+            if (i === playerBlue.y && j === playerBlue.x) {
+              cell.classList.add("player-blue");
+            } else if (i === playerRed.y && j === playerRed.x) {
+              cell.classList.add("player-red");
+            }
+
+            gridContainer.appendChild(cell);
+          }
+        }
+
+        // Function to handle player movements
+        function movePlayer(player, direction) {
+          let newX = player.x;
+          let newY = player.y;
+
+          switch (direction) {
+            case "ArrowUp":
+              newY--;
+              break;
+            case "ArrowDown":
+              newY++;
+              break;
+            case "ArrowLeft":
+              newX--;
+              break;
+            case "ArrowRight":
+              newX++;
+              break;
+          }
+
+          // Check if the new position is valid
+          if (
+            newX >= 0 &&
+            newX < mapSize &&
+            newY >= 0 &&
+            newY < mapSize &&
+            map[newY][newX] == 0 && // Check if walking on walkable path
+            !isCellBomb(newX, newY) // Check if the cell has a bomb
+          ) {
+            player.x = newX;
+            player.y = newY;
+            updatePlayers();
+          }
+        }
+        function isCellBomb(x, y) {
+          const cell = document.querySelector(
+            `.cell[data-x="${x}"][data-y="${y}"]`
+          );
+          if (cell && cell.classList.contains("bomb")) {
+            return true;
+          }
+          return false;
+        }
+
+        // Function to check if a player is in the blast range
+        function checkPlayerDeath(player) {
+          if (player.x === playerBlue.x && player.y === playerBlue.y) {
+            gameOver = true;
+            alert("Blue player died! Game Over.");
+
+            location.reload();
+          } else if (player.x === playerRed.x && player.y === playerRed.y) {
+            gameOver = true;
+            alert("Red player died! Game Over.");
+            location.reload();
+          }
+        }
+        // Function to handle bomb dropping
+        function dropBomb(player) {
+          // For now, just mark the cell with a bomb class
+          const bombCell = document.querySelector(
+            `.cell[data-x="${player.x}"][data-y="${player.y}"]`
+          );
+          if (bombCell && !bombCell.classList.contains("bomb")) {
+            bombCell.classList.add("bomb");
+
+            // Remove bomb after some time (e.g., 2 seconds)
+            const bomb = { x: player.x, y: player.y };
+            setTimeout(() => {
+              explodeBomb(bomb.x, bomb.y);
+              bombCell.classList.remove("bomb");
+            }, 2000);
+          }
+        }
+
+        // Function to handle bomb explosion
+        function explodeBomb(x, y) {
+          // Mark the bomb cell with an explosion animation
+          const bombCell = document.querySelector(
+            `.cell[data-x="${x}"][data-y="${y}"]`
+          );
+          if (bombCell) {
+            bombCell.classList.add("explosion");
+
+            // Remove explosion animation after some time (e.g., 0.5 seconds)
+            setTimeout(() => {
+              bombCell.classList.remove("explosion");
+            }, 500);
+
+            // Destroy walls in all 4 directions
+            destroyWall(x, y, 0, -1); // Up
+            destroyWall(x, y, 0, 1); // Down
+            destroyWall(x, y, -1, 0); // Left
+            destroyWall(x, y, 1, 0); // Right
+
+            // Check if players are in the blast range
+            checkPlayerDeath(playerBlue);
+            checkPlayerDeath(playerRed);
+          }
+        }
+
+        // Function to destroy walls in a specific direction from a given point
+        function destroyWall(x, y, dx, dy) {
+          let nx = x + dx;
+          let ny = y + dy;
+          console.log("Destroyed destructible wall at", nx, ny);
+          if (map[ny][nx] == 2) {
+            const cell = document.querySelector(
+              `.cell[data-x="${nx}"][data-y="${ny}"]`
+            );
+            cell.classList.remove("destructible");
+            map[ny][nx] = 0;
+          }
+        }
+
+        // Event listener for player blue movement and bomb dropping
+        document.addEventListener("keydown", (event) => {
+          switch (event.key) {
+            case "w":
+              movePlayer(playerBlue, "ArrowUp");
+              break;
+            case "s":
+              movePlayer(playerBlue, "ArrowDown");
+              break;
+            case "a":
+              movePlayer(playerBlue, "ArrowLeft");
+              break;
+            case "d":
+              movePlayer(playerBlue, "ArrowRight");
+              break;
+            case "e":
+              dropBomb(playerBlue);
+              break;
+          }
+        });
+
+        // Event listener for player red movement and bomb dropping
+        document.addEventListener("keydown", (event) => {
+          switch (event.key) {
+            case "ArrowUp":
+              movePlayer(playerRed, "ArrowUp");
+              break;
+            case "ArrowDown":
+              movePlayer(playerRed, "ArrowDown");
+              break;
+            case "ArrowLeft":
+              movePlayer(playerRed, "ArrowLeft");
+              break;
+            case "ArrowRight":
+              movePlayer(playerRed, "ArrowRight");
+              break;
+            case "/":
+              dropBomb(playerRed);
+              break;
+          }
+        });
+
+        // Adjust container size to fit the grid
+        gridContainer.style.width = `${mapSize * 21}px`; // Adjusted to include borders and gaps
+        gridContainer.style.height = `${mapSize * 21}px`; // Adjusted to include borders and gaps
+      }
+
+      // Generate and render the Bomberman map on page load
+      window.onload = generateBombermanMap;
+    </script>
+  </body>
+</html>

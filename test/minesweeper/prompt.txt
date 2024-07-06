@@ -1,0 +1,124 @@
+this is my current code : 
+```
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KSP - Minesweeper</title>
+  </head>
+  <body>
+    <div class="container-minesweeper"></div>
+    <script></script>
+  </body>
+</html>
+```
+
+i want to make a minesweeper
+1. make a the minesweeper map in a matrix
+2. make the map can generate the explosives
+3. draw the map in HTML CSS, make sure the drawn is in a matrix format a M x N format.
+4. make each of the cell clickable
+
+just give me one HTML code for the entire code
+
+
+
+
+this is my current code : 
+```
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KSP - Minesweeper</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+      }
+
+      .container-minesweeper {
+        display: grid;
+        grid-template-columns: repeat(
+          6,
+          50px
+        ); /* Adjust columns based on desired grid size */
+        gap: 2px; /* Gap between cells */
+      }
+
+      .cell {
+        width: 50px; /* Adjust size based on desired grid size */
+        height: 50px; /* Adjust size based on desired grid size */
+        background-color: #bbb;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container-minesweeper" id="minesweeper-grid"></div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const gridSize = 6; // Size of the grid (gridSize x gridSize)
+        const numMines = 5; // Number of mines
+
+        // Function to create and initialize the Minesweeper grid
+        function createMinesweeperGrid() {
+          const container = document.getElementById("minesweeper-grid");
+          for (let i = 0; i < gridSize; i++) {
+            for (let j = 0; j < gridSize; j++) {
+              const cell = document.createElement("div");
+              cell.classList.add("cell");
+              cell.dataset.row = i;
+              cell.dataset.col = j;
+              container.appendChild(cell);
+            }
+          }
+        }
+
+        // Initialize the Minesweeper grid
+        createMinesweeperGrid();
+
+        // Function to generate random mine locations
+        function generateMines() {
+          const mines = new Set();
+          while (mines.size < numMines) {
+            const row = Math.floor(Math.random() * gridSize);
+            const col = Math.floor(Math.random() * gridSize);
+            mines.add(`${row},${col}`);
+          }
+          return mines;
+        }
+
+        // Handle click events on cells
+        document
+          .getElementById("minesweeper-grid")
+          .addEventListener("click", function (event) {
+            const cell = event.target;
+            if (cell.classList.contains("cell")) {
+              const row = parseInt(cell.dataset.row);
+              const col = parseInt(cell.dataset.col);
+              cell.style.backgroundColor = "#ddd"; // Change color when clicked
+              // You can add more logic here to handle revealing cells or checking for mines
+            }
+          });
+      });
+    </script>
+  </body>
+</html>
+```
+5. make when clicking the cell EMPTY will open all the connected empty cells around it
+the numbered cells that show in an 3x3 area how many explosives, 
+the explosives cells will explode and end the game if clicked.
+6. make a game over when the explosive cells is clicked.
+
+just give me one HTML code for the entire code

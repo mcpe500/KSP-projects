@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KSP - WASD Controller</title>
+    <style>
+        .container {
+            position: relative;
+            width: 400px; /* Adjust size as needed */
+            height: 400px; /* Adjust size as needed */
+            border: 1px solid black;
+        }
+        .player {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 50px; /* Adjust size as needed */
+            height: 50px; /* Adjust size as needed */
+            background-color: blue;
+            transform: translate(0px,0px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="player" class="player"></div>
+    </div>
+    <script>
+        const player = document.getElementById('player');
+        let playerX = 0;
+        let playerY = 0;
+
+        function movePlayer(direction) {
+            switch (direction) {
+                case 'up':
+                    playerY -= 10;
+                    break;
+                case 'down':
+                    playerY += 10;
+                    break;
+                case 'left':
+                    playerX -= 10;
+                    break;
+                case 'right':
+                    playerX += 10;
+                    break;
+                default:
+                    return; // Exit function for any other key
+            }
+            player.style.transform = `translate(${playerX}px, ${playerY}px)`;
+        }
+
+        window.addEventListener('keydown', (event) => {
+            const key = event.key.toLowerCase();
+            switch (key) {
+                case 'w':
+                    movePlayer('up');
+                    break;
+                case 's':
+                    movePlayer('down');
+                    break;
+                case 'a':
+                    movePlayer('left');
+                    break;
+                case 'd':
+                    movePlayer('right');
+                    break;
+                default:
+                    return; // Exit event listener for any other key
+            }
+        });
+    </script>
+</body>
+</html>

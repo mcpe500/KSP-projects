@@ -1,0 +1,21 @@
+this is my current HTML Code : 
+```
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KSP - WASD Controller</title>
+</head>
+<body>
+    <div class="container"></div>
+    <script></script>
+</body>
+</html>
+```
+
+please make this code so that i can control it using WASD 
+1. create the component that will move when WASD is pressed
+2. make the component have unique ID or class
+3. get the component from querySelector and make it move according to WASD
+4. create the controller that will do the WASD logic.

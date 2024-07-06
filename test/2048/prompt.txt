@@ -1,0 +1,32 @@
+this is my current HTML code : 
+```
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KSP - 2048</title>
+</head>
+<body>
+    <div class="container-2048"></div>
+    <script></script>
+</body>
+</html>
+```
+
+please help me make this code so that it will become a 2048 game properly in HTML
+1. create a 4x4 grid, make it each with div and it is placed like 
+```
+[] [] [] [] 
+[] [] [] [] 
+[] [] [] [] 
+[] [] [] [] 
+```
+that each have a grey color
+
+2. make a 4 action button for up,down,left,right
+3. make it so that everytime an action button is pressed 2 number is spawned, the number spawned can be 2,4,8,16, up to 128, but in the current board needs to have the 2 level above, except 2, example : if 4 wants to spawn then in the board 16 should've been made/ exists in the board, if 32 wants to spawn then 128 should be on the board.
+4. make each action button work, if i press the UP then it will move each of the button to the top and also make it stack and able to merge. make it like a proper 2048 game.
+5. make sure each component have CSS so it is visible when the game is being played.
+6. make sure that the game is proper and works.
+7. make sure that there is a lose condition

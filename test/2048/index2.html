@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KSP - 2048</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #fafafa;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+      }
+      .container-2048 {
+        display: grid;
+        grid-template-columns: repeat(4, 100px);
+        grid-gap: 10px;
+        background-color: #ccc;
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+      }
+      .tile {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 24px;
+        font-weight: bold;
+        background-color: #eee;
+        border-radius: 5px;
+        width: 100px;
+        height: 100px;
+      }
+      .button-container {
+        display: flex;
+        justify-content: center;
+      }
+      button {
+        padding: 10px 20px;
+        font-size: 16px;
+        margin: 0 10px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container-2048" id="game-container">
+      <!-- Grid cells will be dynamically added here -->
+    </div>
+
+    <div class="button-container">
+      <button onclick="move('up')">Up</button>
+      <button onclick="move('down')">Down</button>
+      <button onclick="move('left')">Left</button>
+      <button onclick="move('right')">Right</button>
+    </div>
+
+    <script>
+      // Initialize the game board
+      let board = [
+        [null, null, null, null],
+        [null, null, null, null],
+        [null, null, null, null],
+        [null, null, null, null],
+      ];
+
+      // Function to render the board
+      function renderBoard() {
+        const container = document.getElementById("game-container");
+        container.innerHTML = "";
+
+        board.forEach((row) => {
+          row.forEach((cell) => {
+            const tile = document.createElement("div");
+            tile.className = "tile";
+            tile.innerText = cell ? cell : "";
+            if (cell) {
+              tile.classList.add(`tile-${cell}`);
+            }
+            container.appendChild(tile);
+          });
+        });
+      }
+
+      // Function to generate a new tile (2 or 4)
+      function generateNewTile() {
+        const availablePositions = [];
+        board.forEach((row, rowIndex) => {
+          row.forEach((cell, colIndex) => {
+            if (cell === null) {
+              availablePositions.push({ row: rowIndex, col: colIndex });
+            }
+          });
+        });
+
+        if (availablePositions.length > 0) {
+          const randomIndex = Math.floor(
+            Math.random() * availablePositions.length
+          );
+          const value = Math.random() < 0.9 ? 2 : 4; // 90% chance of 2, 10% chance of 4
+          const { row, col } = availablePositions[randomIndex];
+          board[row][col] = value;
+        }
+      }
+
+      // Function to check if there are any possible moves left
+      function checkLoseCondition() {
+        // Check if there are any empty cells
+        for (let row = 0; row < 4; row++) {
+          for (let col = 0; col < 4; col++) {
+            if (board[row][col] === null) {
+              return false; // There's an empty cell, game can continue
+            }
+          }
+        }
+
+        // Check if there are adjacent cells with the same value
+        for (let row = 0; row < 4; row++) {
+          for (let col = 0; col < 4; col++) {
+            if (row > 0 && board[row][col] === board[row - 1][col]) {
+              return false;
+            }
+            if (row < 3 && board[row][col] === board[row + 1][col]) {
+              return false;
+            }
+            if (col > 0 && board[row][col] === board[row][col - 1]) {
+              return false;
+            }
+            if (col < 3 && board[row][col] === board[row][col + 1]) {
+              return false;
+            }
+          }
+        }
+
+        return true; // No possible moves left, game over
+      }
+
+      // Function to handle movement
+      function move(direction) {
+        switch (direction) {
+          case "up":
+            moveUp();
+            break;
+          case "down":
+            moveDown();
+            break;
+          case "left":
+            moveLeft();
+            break;
+          case "right":
+            moveRight();
+            break;
+        }
+
+        if (!checkLoseCondition()) {
+          generateNewTile();
+          renderBoard();
+        } else {
+          alert("Game Over! No more moves left.");
+        }
+      }
+
+      // Function to move tiles Up
+      function moveUp() {
+        board = rotateBoardCounterClockwise();
+        moveLeft();
+        board = rotateBoardClockwise();
+      }
+
+      // Function to move tiles Down
+      function moveDown() {
+        board = rotateBoardCounterClockwise();
+        moveRight();
+        board = rotateBoardClockwise();
+      }
+
+      // Function to move tiles Left
+      function moveLeft() {
+        for (let row = 0; row < 4; row++) {
+          let stack = [];
+          for (let col = 0; col < 4; col++) {
+            if (board[row][col] !== null) {
+              stack.push(board[row][col]);
+            }
+          }
+
+          stack = mergeTiles(stack);
+
+          for (let col = 0; col < 4; col++) {
+            if (stack.length > 0) {
+              board[row][col] = stack.shift();
+            } else {
+              board[row][col] = null;
+            }
+          }
+        }
+      }
+
+      // Function to move tiles Right
+      function moveRight() {
+        for (let row = 0; row < 4; row++) {
+          let stack = [];
+          for (let col = 3; col >= 0; col--) {
+            if (board[row][col] !== null) {
+              stack.push(board[row][col]);
+            }
+          }
+
+          stack = mergeTiles(stack);
+
+          for (let col = 3; col >= 0; col--) {
+            if (stack.length > 0) {
+              board[row][col] = stack.pop();
+            } else {
+              board[row][col] = null;
+            }
+          }
+        }
+      }
+
+      // Function to merge tiles in a stack
+      function mergeTiles(stack) {
+        for (let i = 0; i < stack.length - 1; i++) {
+          if (stack[i] === stack[i + 1]) {
+            stack[i] *= 2;
+            stack.splice(i + 1, 1);
+          }
+        }
+        return stack;
+      }
+
+      // Helper function to rotate the board 90 degrees clockwise
+      function rotateBoardClockwise() {
+        const N = board.length;
+        const rotated = [];
+        for (let col = 0; col < N; col++) {
+          let newRow = [];
+          for (let row = N - 1; row >= 0; row--) {
+            newRow.push(board[row][col]);
+          }
+          rotated.push(newRow);
+        }
+        return rotated;
+      }
+
+      // Helper function to rotate the board 90 degrees counterclockwise
+      function rotateBoardCounterClockwise() {
+        const N = board.length;
+        const rotated = [];
+        for (let col = N - 1; col >= 0; col--) {
+          let newRow = [];
+          for (let row = 0; row < N; row++) {
+            newRow.push(board[row][col]);
+          }
+          rotated.push(newRow);
+        }
+        return rotated;
+      }
+
+      // Initialize the game
+      generateNewTile();
+      generateNewTile();
+      renderBoard();
+    </script>
+  </body>
+</html>
