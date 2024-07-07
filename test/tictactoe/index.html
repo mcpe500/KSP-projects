@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KSP - TicTacToe</title>
+    <style>
+      .container-tictactoe {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-gap: 10px;
+        max-width: 300px; /* Optional: adjust to fit your design */
+        margin: auto; /* Optional: centers the grid */
+      }
+      .cell {
+        width: 100px;
+        height: 100px;
+        border: 1px solid black;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 2em;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container-tictactoe">
+      <div class="cell" onclick="cellClicked(0, 0)"></div>
+      <div class="cell" onclick="cellClicked(0, 1)"></div>
+      <div class="cell" onclick="cellClicked(0, 2)"></div>
+      <div class="cell" onclick="cellClicked(1, 0)"></div>
+      <div class="cell" onclick="cellClicked(1, 1)"></div>
+      <div class="cell" onclick="cellClicked(1, 2)"></div>
+      <div class="cell" onclick="cellClicked(2, 0)"></div>
+      <div class="cell" onclick="cellClicked(2, 1)"></div>
+      <div class="cell" onclick="cellClicked(2, 2)"></div>
+    </div>
+
+    <script>
+      // Representing the game board as a 3x3 array
+      let board = [
+        ["", "", ""],
+        ["", "", ""],
+        ["", "", ""],
+      ];
+
+      let currentPlayer = "O"; // Player X starts first
+      let playerChoice = "O"; // Default player choice (can be changed by menu)
+      let opponentChoice = "O"; // Opponent's choice is opposite of player's
+
+      // AI Opponent choice
+      let aiChoice = opponentChoice === "X" ? "O" : "X";
+        
+      // AI Difficulty (true for AI, false for another person)
+      let isAiOpponent = true;
+
+      function cellClicked(row, col) {
+        // Check if the cell is empty and the game is not over
+        if (board[row][col] === "" && !isGameOver()) {
+          board[row][col] = currentPlayer;
+          renderBoard();
+          if (checkWin(currentPlayer)) {
+            alert(currentPlayer + " wins!");
+            resetGame();
+          } else if (isBoardFull()) {
+            alert("It's a draw!");
+            resetGame();
+          } else {
+            // Switch turn to the next player
+            currentPlayer = currentPlayer === "X" ? "O" : "X";
+            // If AI's turn, make AI move
+            if (currentPlayer === aiChoice && isAiOpponent) {
+              makeAiMove();
+            }
+          }
+        }
+      }
+
+      function renderBoard() {
+        const cells = document.querySelectorAll(".cell");
+        cells.forEach((cell, index) => {
+          const row = Math.floor(index / 3);
+          const col = index % 3;
+          cell.textContent = board[row][col];
+        });
+      }
+
+      function checkWin(player) {
+        // Check rows, columns, and diagonals for a win
+        for (let i = 0; i < 3; i++) {
+          if (
+            board[i][0] === player &&
+            board[i][1] === player &&
+            board[i][2] === player
+          ) {
+            return true; // Row win
+          }
+          if (
+            board[0][i] === player &&
+            board[1][i] === player &&
+            board[2][i] === player
+          ) {
+            return true; // Column win
+          }
+        }
+        if (
+          board[0][0] === player &&
+          board[1][1] === player &&
+          board[2][2] === player
+        ) {
+          return true; // Diagonal (\) win
+        }
+        if (
+          board[0][2] === player &&
+          board[1][1] === player &&
+          board[2][0] === player
+        ) {
+          return true; // Diagonal (/) win
+        }
+        return false;
+      }
+
+      function isBoardFull() {
+        // Check if all cells are filled
+        for (let row = 0; row < 3; row++) {
+          for (let col = 0; col < 3; col++) {
+            if (board[row][col] === "") {
+              return false; // Found an empty cell, game is not full
+            }
+          }
+        }
+        return true; // All cells are filled, it's a draw
+      }
+
+      function isGameOver() {
+        return checkWin("X") || checkWin("O") || isBoardFull();
+      }
+
+      function resetGame() {
+        // Clear the board and reset all variables
+        board = [
+          ["", "", ""],
+          ["", "", ""],
+          ["", "", ""],
+        ];
+        currentPlayer = "X";
+        renderBoard();
+      }
+
+      // Function to make AI move using Minimax algorithm
+      function makeAiMove() {
+        // Initialize bestMove object to keep track of best move
+        let bestMove = null;
+        let bestScore = -Infinity;
+
+        // Iterate through each empty cell to find the best move
+        for (let i = 0; i < 3; i++) {
+          for (let j = 0; j < 3; j++) {
+            if (board[i][j] === "") {
+              // Try the move
+              board[i][j] = aiChoice;
+              // Calculate score using minimax for this move
+              let score = minimax(board, 0, false);
+              // Undo the move
+              board[i][j] = "";
+              // Update bestScore and bestMove if score is better
+              if (score > bestScore) {
+                bestScore = score;
+                bestMove = { i, j };
+              }
+            }
+          }
+        }
+
+        // Make the best move found by AI
+        board[bestMove.i][bestMove.j] = aiChoice;
+        renderBoard();
+
+        // Check for game over after AI move
+        if (checkWin(aiChoice)) {
+          alert(aiChoice + " wins!");
+          resetGame();
+        } else if (isBoardFull()) {
+          alert("It's a draw!");
+          resetGame();
+        } else {
+          // Switch turn to the next player
+          currentPlayer = currentPlayer === "X" ? "O" : "X";
+        }
+      }
+
+      // Minimax algorithm implementation
+      function minimax(board, depth, isMaximizing) {
+        // Base cases: check for terminal states (win, lose, draw)
+        if (checkWin(aiChoice)) {
+          return 10 - depth; // AI wins
+        } else if (checkWin(playerChoice)) {
+          return depth - 10; // Player wins
+        } else if (isBoardFull()) {
+          return 0; // Draw
+        }
+
+        if (isMaximizing) {
+          // Maximizing player (AI)
+          let bestScore = -Infinity;
+          // Try each empty cell
+          for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+              if (board[i][j] === "") {
+                // Try the move
+                board[i][j] = aiChoice;
+                // Recursively call minimax to simulate the game
+                let score = minimax(board, depth + 1, false);
+                // Undo the move
+                board[i][j] = "";
+                // Update bestScore if score is better
+                bestScore = Math.max(bestScore, score);
+              }
+            }
+          }
+          return bestScore;
+        } else {
+          // Minimizing player (Player)
+          let bestScore = Infinity;
+          // Try each empty cell
+          for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+              if (board[i][j] === "") {
+                // Try the move
+                board[i][j] = playerChoice;
+                // Recursively call minimax to simulate the game
+                let score = minimax(board, depth + 1, true);
+                // Undo the move
+                board[i][j] = "";
+                // Update bestScore if score is better
+                bestScore = Math.min(bestScore, score);
+              }
+            }
+          }
+          return bestScore;
+        }
+      }
+
+      // Event listener to handle player and opponent selection
+      document
+        .getElementById("playerSelection")
+        .addEventListener("change", function () {
+          playerChoice = this.value;
+          opponentChoice = playerChoice === "X" ? "O" : "X";
+          aiChoice = opponentChoice;
+          resetGame();
+        });
+
+      document
+        .getElementById("opponentSelection")
+        .addEventListener("change", function () {
+          isAiOpponent = this.value === "ai";
+          resetGame();
+        });
+
+      // Initial rendering of the board
+      renderBoard();
+    </script>
+  </body>
+</html>

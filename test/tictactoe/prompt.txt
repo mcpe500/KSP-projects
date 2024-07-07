@@ -1,0 +1,174 @@
+this is my current code : 
+```
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KSP - TicTacToe</title>
+</head>
+<body>
+    <div class="container-tictactoe"></div>
+    <script></script>
+</body>
+</html>
+```
+i want to make a tictactoe game
+1. make an matrix 3x3 
+2. display the matrix on to the HTML using CSS and make sure it's shown in a grid format, so it's not 1x9 or 9x1 but 3x3
+3. make 2 players the X and O
+4. make each player move when it is their turn
+5. make the game win or draw condition.
+
+
+this is my current code : 
+```
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KSP - TicTacToe</title>
+    <style>
+      .container-tictactoe {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-gap: 10px;
+        max-width: 300px; /* Optional: adjust to fit your design */
+        margin: auto; /* Optional: centers the grid */
+      }
+      .cell {
+        width: 100px;
+        height: 100px;
+        border: 1px solid black;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 2em;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container-tictactoe">
+      <div class="cell" onclick="cellClicked(0, 0)"></div>
+      <div class="cell" onclick="cellClicked(0, 1)"></div>
+      <div class="cell" onclick="cellClicked(0, 2)"></div>
+      <div class="cell" onclick="cellClicked(1, 0)"></div>
+      <div class="cell" onclick="cellClicked(1, 1)"></div>
+      <div class="cell" onclick="cellClicked(1, 2)"></div>
+      <div class="cell" onclick="cellClicked(2, 0)"></div>
+      <div class="cell" onclick="cellClicked(2, 1)"></div>
+      <div class="cell" onclick="cellClicked(2, 2)"></div>
+    </div>
+
+    <script>
+      // Representing the game board as a 3x3 array
+      let board = [
+        ["", "", ""],
+        ["", "", ""],
+        ["", "", ""],
+      ];
+
+      let currentPlayer = "X"; // Player X starts first
+
+      function cellClicked(row, col) {
+        // Check if the cell is empty and the game is not over
+        if (board[row][col] === "" && !isGameOver()) {
+          board[row][col] = currentPlayer;
+          renderBoard();
+          if (checkWin(currentPlayer)) {
+            alert(currentPlayer + " wins!");
+            resetGame();
+          } else if (isBoardFull()) {
+            alert("It's a draw!");
+            resetGame();
+          } else {
+            // Switch turn to the next player
+            currentPlayer = currentPlayer === "X" ? "O" : "X";
+          }
+        }
+      }
+
+      function renderBoard() {
+        const cells = document.querySelectorAll(".cell");
+        cells.forEach((cell, index) => {
+          const row = Math.floor(index / 3);
+          const col = index % 3;
+          cell.textContent = board[row][col];
+        });
+      }
+
+      function checkWin(player) {
+        // Check rows, columns, and diagonals for a win
+        for (let i = 0; i < 3; i++) {
+          if (
+            board[i][0] === player &&
+            board[i][1] === player &&
+            board[i][2] === player
+          ) {
+            return true; // Row win
+          }
+          if (
+            board[0][i] === player &&
+            board[1][i] === player &&
+            board[2][i] === player
+          ) {
+            return true; // Column win
+          }
+        }
+        if (
+          board[0][0] === player &&
+          board[1][1] === player &&
+          board[2][2] === player
+        ) {
+          return true; // Diagonal (\) win
+        }
+        if (
+          board[0][2] === player &&
+          board[1][1] === player &&
+          board[2][0] === player
+        ) {
+          return true; // Diagonal (/) win
+        }
+        return false;
+      }
+
+      function isBoardFull() {
+        // Check if all cells are filled
+        for (let row = 0; row < 3; row++) {
+          for (let col = 0; col < 3; col++) {
+            if (board[row][col] === "") {
+              return false; // Found an empty cell, game is not full
+            }
+          }
+        }
+        return true; // All cells are filled, it's a draw
+      }
+
+      function isGameOver() {
+        return checkWin("X") || checkWin("O") || isBoardFull();
+      }
+
+      function resetGame() {
+        // Clear the board and reset all variables
+        board = [
+          ["", "", ""],
+          ["", "", ""],
+          ["", "", ""],
+        ];
+        currentPlayer = "X";
+        renderBoard();
+      }
+
+      // Initial rendering of the board
+      renderBoard();
+    </script>
+  </body>
+</html>
+```
+i want to add ai enemy
+1. add a menu to choose to play as X or O
+2. add a menu to choose to play another person or play against AI
+3. create the AI using minmax algorithm
+
+only give me the javascript code
